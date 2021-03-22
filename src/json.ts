@@ -21,7 +21,7 @@ class Response {
 const maxBuffer = 50 * 1000000;
 // 默认的配置
 const defaultOptions = {
-  timeout: 5000,
+  timeout: 15000,
   followRedirects: true,
   compress: true,
 };
