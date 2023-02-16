@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/ZacharyL2/request-pure/compare/v2.0.0...v3.0.0) (2023-02-16)
+
+### Features
+
+- 3.0 ([28da367](https://github.com/ZacharyL2/request-pure/commit/28da367f658b5b319b5200edfe7da5e4dccb4635))
+
 ## [2.0.0](https://github.com/islizeqiang/request-pure/compare/v1.1.0...v2.0.0) (2021-06-20)
 
 ### Features
