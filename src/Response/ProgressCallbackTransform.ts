@@ -1,7 +1,6 @@
-/* eslint-disable no-underscore-dangle */
 import { Transform } from 'stream';
 import type { TransformCallback } from 'stream';
-import type { ProgressCallback } from '../typings.d';
+import type { ProgressCallback } from '@/typings.d';
 
 export default class ProgressCallbackTransform extends Transform {
   private start = Date.now();
@@ -18,33 +17,47 @@ export default class ProgressCallbackTransform extends Transform {
     this.onProgress = onProgress;
   }
 
-  _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
-    this.transferred += chunk.length;
-    this.delta += chunk.length;
+  _transform(
+    chunk: Buffer,
+    encoding: BufferEncoding,
+    callback: TransformCallback,
+  ) {
+    const chunkLength = chunk.length;
+    this.transferred += chunkLength;
+    this.delta += chunkLength;
 
-    const now = Date.now();
-    if (now >= this.nextUpdate && this.transferred !== this.total) {
-      this.nextUpdate = now + 1000;
-      this.onProgress({
-        total: this.total,
-        delta: this.delta,
-        transferred: this.transferred,
-        percent: (this.transferred / this.total) * 100,
-        bytesPerSecond: Math.round(this.transferred / ((now - this.start) / 1000)),
-      });
-      this.delta = 0;
+    if (this.total >= this.transferred) {
+      const now = Date.now();
+      if (now >= this.nextUpdate) {
+        this.nextUpdate = now + 1000;
+        this.onProgress({
+          total: this.total,
+          delta: this.delta,
+          transferred: this.transferred,
+          percent: (this.transferred / this.total) * 100,
+          bytesPerSecond: Math.round(
+            this.transferred / ((now - this.start) / 1000),
+          ),
+        });
+        this.delta = 0;
+      }
     }
 
     callback(null, chunk);
   }
 
   _flush(callback: TransformCallback): void {
+    const { total, transferred } = this;
+    const totalChunk = transferred > total ? transferred : total;
+
     this.onProgress({
-      total: this.total,
+      total: totalChunk,
       delta: this.delta,
-      transferred: this.total,
+      transferred: totalChunk,
       percent: 100,
-      bytesPerSecond: Math.round(this.transferred / ((Date.now() - this.start) / 1000)),
+      bytesPerSecond: Math.round(
+        this.transferred / ((Date.now() - this.start) / 1000),
+      ),
     });
     this.delta = 0;
 

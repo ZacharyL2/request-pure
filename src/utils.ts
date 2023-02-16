@@ -7,7 +7,9 @@ export const extractContentType = (body: unknown): string | null => {
 
 export const isRedirect = (code: number | undefined) => {
   if (typeof code !== 'number') return false;
-  return code === 301 || code === 302 || code === 303 || code === 307 || code === 308;
+  return (
+    code === 301 || code === 302 || code === 303 || code === 307 || code === 308
+  );
 };
 
 /**
@@ -102,7 +104,6 @@ export const checkIsHttpToken = (val: unknown) => {
  * so take care when making changes to the implementation so that the source
  * code size does not exceed v8's default max_inlined_source_size setting.
  * */
-//
 export const checkInvalidHeaderChar = (val: string) => {
   if (val.length < 1) {
     return false;

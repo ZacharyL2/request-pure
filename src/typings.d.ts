@@ -1,5 +1,5 @@
-import type { Stream } from 'stream';
-import type { WriteStream } from 'fs';
+import type { BinaryToTextEncoding } from 'crypto';
+import type { Stream, Writable } from 'stream';
 import type { URL } from 'url';
 import type Headers from './Headers';
 
@@ -17,7 +17,7 @@ export interface Options {
   /**
    * Request headers
    */
-  headers?: Record<string, string>;
+  headers?: Record<string, string | string[]>;
   /**
    * Request query
    */
@@ -44,50 +44,6 @@ export interface Options {
   size?: number;
 }
 
-export interface Response {
-  /** Convenience property representing if the request ended normally */
-  ok: boolean;
-  /** Return origin stream */
-  stream: Stream;
-  /**
-   * Download file to destination
-   * @param {WriteStream} dest  Download write stream
-   * @param {ProgressCallback=} onProgress Download progress callback
-   */
-  download: (dest: WriteStream, onProgress?: ProgressCallback) => Promise<void>;
-  /** Decode response as ArrayBuffer */
-  arrayBuffer(): Promise<ArrayBuffer>;
-  /** Decode response as Blob */
-  blob(): Promise<Blob>;
-  /** Decode response as text */
-  text(): Promise<string>;
-  /** Decode response as json */
-  json<T>(): Promise<T>;
-  /** Decode response as buffer */
-  buffer(): Promise<Buffer>;
-}
-
-export interface DefaultOptions {
-  method: string;
-  body: string | null | Buffer | Stream;
-  followRedirect: boolean;
-  maxRedirectCount: number;
-  timeout: number;
-  size: number;
-  redirectCount: number;
-}
-
-export interface RequestConstructorOptions extends Options {
-  requestURL: string;
-}
-
-export interface RequestOptions
-  extends Omit<RequestConstructorOptions, keyof DefaultOptions>,
-    DefaultOptions {
-  parsedURL: URL;
-  headers: Headers;
-}
-
 export interface ProgressInfo {
   /** Total file bytes */
   total: number;
@@ -102,6 +58,75 @@ export interface ProgressInfo {
 }
 
 export type ProgressCallback = (progressInfo: ProgressInfo) => void;
+
+export interface ValidateOptions {
+  /** Expected hash */
+  expected: string;
+  /**
+   * Algorithm: first parameter of crypto.createHash
+   * @default 'md5'
+   */
+  algorithm?: string;
+  /**
+   * Encoding: first parameter of Hash.digest
+   * @default 'base64'
+   */
+  encoding?: BinaryToTextEncoding;
+}
+
+export interface Response {
+  /** Whether the response was successful (status in the range 200-299) */
+  ok: boolean;
+  /** Response headers */
+  headers: Record<string, string | string[]>;
+  /** Return origin stream */
+  stream: Stream;
+  /** Decode response as ArrayBuffer */
+  arrayBuffer(): Promise<ArrayBuffer>;
+  /** Decode response as Blob */
+  blob(): Promise<Blob>;
+  /** Decode response as text */
+  text(): Promise<string>;
+  /** Decode response as json */
+  json<T>(): Promise<T>;
+  /** Decode response as buffer */
+  buffer(): Promise<Buffer>;
+  /**
+   * Download file to destination
+   * @param {Writable} destination Writable destination stream
+   * @param {ProgressCallback=} onProgress Download progress callback
+   * @param {ValidateOptions=} validateOptions Validate options
+   */
+  download: (
+    destination: Writable,
+    onProgress?: ProgressCallback,
+    validateOptions?: ValidateOptions,
+  ) => Promise<void>;
+}
+
+export interface RequestClient {
+  send(): Promise<Response>;
+}
+
+export interface DefaultOptions {
+  method: string;
+  body: string | null | Buffer | Stream;
+  followRedirect: boolean;
+  maxRedirectCount: number;
+  timeout: number;
+  size: number;
+}
+
+export interface RequestConstructorOptions extends Options {
+  requestURL: string;
+}
+
+export interface RequestOptions
+  extends Omit<RequestConstructorOptions, keyof DefaultOptions>,
+    DefaultOptions {
+  parsedURL: URL;
+  headers: Headers;
+}
 
 export interface Blob {
   size: number;
